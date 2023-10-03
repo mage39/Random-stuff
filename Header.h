@@ -83,6 +83,27 @@ void LSDradixSort(unsigned int list[], int length) {
 	}
 }
 
+void doubleLSDradix(double list[], int length) {
+	int pointer = 0;
+	int flag = 0;
+	for (int i = 0; i < length; i++) {
+		if (list[i] & ~(1 << 63 - i) == 1 << 63 - i && !flag) {
+			pointer++;
+		} else if (!flag) {
+			pointer++;
+			flag++;
+		} else if (list[i] & ~(1 << 63 - i) == 1 << 63 - i && flag) {
+			double a = list[pointer];
+			list[pointer] = list[i];
+			list[i] = a;
+			pointer++;
+		}
+	}
+	for (int i = 0; i < length; i++) {
+		//dear god, an MSD radix sort on negative numbers. WAIT A MINUTE
+		//for negatives exponent, you can just MSD the normal way up to the pointer
+	}
+
 void LSDradixSortUnderstandable(unsigned int list[], int length) {
 #ifndef RADIX_BASE
 	#define RADIX_BASE 10
@@ -112,7 +133,7 @@ void LSDradixSortUnderstandable(unsigned int list[], int length) {
 	}
 }
 
-typedef enum typeChecker {
+/*typedef enum typeChecker {
 	isChar,
 	isInt,
 	isFloat
@@ -147,4 +168,4 @@ int aTotallyPolymorphicFunction(typeChecker a, ...) {
 		va_end(va);
 		return -1;
 	}
-}
+}*/
