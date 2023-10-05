@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdint.h>
 
 int gcd(int a, int b) {
 	int t = 0;
@@ -84,24 +85,26 @@ void LSDradixSort(unsigned int list[], int length) {
 }
 
 void doubleLSDradix(double list[], int length) {
-	int pointer = 0;
-	int flag = 0;
+	int count[4] = {0};
+	typedef union cmp {
+		double d;
+		uint64_t i;
+	} cmp;
+
 	for (int i = 0; i < length; i++) {
-		if (list[i] & ~(1 << 63 - i) == 1 << 63 - i && !flag) {
-			pointer++;
-		} else if (!flag) {
-			pointer++;
-			flag++;
-		} else if (list[i] & ~(1 << 63 - i) == 1 << 63 - i && flag) {
-			double a = list[pointer];
-			list[pointer] = list[i];
-			list[i] = a;
-			pointer++;
+		for (int j = 0; j < 4; j++) {
+			cmp a.d = list[i];
+			if ((a.i & 3 << 62) == j << 62) count[j]++;
 		}
 	}
+	int ptrs[4];
+	memcpy(ptrs, count, sizeof(count));
+
 	for (int i = 0; i < length; i++) {
-		//dear god, an MSD radix sort on negative numbers. WAIT A MINUTE
-		//for negatives exponent, you can just MSD the normal way up to the pointer
+		double a = list[length - count[i] - 1];
+		list[length - count[i] - 1] = list[i];
+		list[i] = a;
+		count[i]--;
 	}
 
 void LSDradixSortUnderstandable(unsigned int list[], int length) {
