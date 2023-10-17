@@ -85,7 +85,7 @@ void LSDradixSort(unsigned int list[], int length) {
 }
 
 void doubleLSDradix(double list[], int length) {
-	int count[4] = {0};
+	int count[16] = {0};
 	typedef union cmp {
 		double d;
 		uint64_t i;
@@ -98,7 +98,7 @@ void doubleLSDradix(double list[], int length) {
 		}
 	}
 	int ptrs[4];
-	memcpy(ptrs, count, sizeof(count));
+	memcpy(ptrs, count, sizeof(ptrs));
 
 	for (int i = 0; i < length; i++) {
 		double a = list[length - count[i] - 1];
@@ -106,11 +106,12 @@ void doubleLSDradix(double list[], int length) {
 		list[i] = a;
 		count[i]--;
 	}
+}
 
 void LSDradixSortUnderstandable(unsigned int list[], int length) {
 #ifndef RADIX_BASE
 	#define RADIX_BASE 10
-#endif // !RADIX_BASE
+#endif
 	
 	int maxOrderOfMagnitudeExpected = 1000000000;
 	for (int offset = 0; offset < maxOrderOfMagnitudeExpected; offset += RADIX_BASE) {
