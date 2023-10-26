@@ -1,8 +1,8 @@
 #pragma once
+#include <time.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <time.h>
 #include <stdint.h>
 
 int gcd(int a, int b) {
