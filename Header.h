@@ -1,6 +1,7 @@
 #pragma once
 #include <time.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -42,7 +43,7 @@ double pi(double x) {  // note that any input above 1+e7 has a noticeable comput
 	return 4 * output;
 }
 
-void randList(int list[], int length, int modNum) {
+void randList(unsigned list[], int length, int modNum) {
 	srand(time(NULL));
 
 	for (int i = 0; i < length; i++) {
@@ -51,9 +52,9 @@ void randList(int list[], int length, int modNum) {
 	}
 }
 
-void printList(int list[], int length, int lineLength) {
+void printList(unsigned list[], int length, int lineLength) {
 	for (int i = 0; i < length;) {
-		printf("%2X", list[i]);
+		printf("%3X ", list[i]);
 		printf((++i % lineLength) ? "" : "\n");
 	}
 }
@@ -84,9 +85,10 @@ void LSDradixSort(unsigned int list[], int length) {
 	}
 }
 
+/*
 void doubleLSDradix(double list[], int length) {
 	int count[16] = {0};
-	typedef union cmp {
+	typedef union Cmp {
 		double d;
 		uint64_t i;
 	} cmp;

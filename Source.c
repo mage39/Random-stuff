@@ -1,17 +1,16 @@
 #include "Header.h"
 
-#define LEN 10
+#define LEN 16384
 
 int main() {
-	int list[LEN] = { 0 };
-	int lineLength = 5;
+	unsigned list[LEN] = { 0 };
+	int lineLength = 8;
 
-	randList(list, LEN, 10);
+	randList(list, LEN, 64);
 	
 	printList(list, LEN, lineLength);
 	printf("\n");
-	void blockMergeSort(int list[], int length);
-	blockMergeSort(list, LEN);
+	LSDradixSort(list, LEN);
 	printList(list, LEN, lineLength);
 
 	return 0;
@@ -19,7 +18,7 @@ int main() {
 
 void blockMergeSort(int list[], int length) {
 	for (int blockSize = 1; blockSize < length; blockSize *= 2) {
-		for () {}
+		for (;;) {}
 		for (int i = 0; i < blockSize; i++) {
 			if (blockSize + i < length && list[i] > list[i + blockSize]) {
 				int a = list[i + blockSize];
