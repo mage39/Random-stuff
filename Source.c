@@ -19,7 +19,7 @@ int main() {
 
 void blockMergeSort(int list[], int length) {
 	for (int blockSize = 1; blockSize < length; blockSize *= 2) {
-		for () {}
+		// for () {}
 		for (int i = 0; i < blockSize; i++) {
 			if (blockSize + i < length && list[i] > list[i + blockSize]) {
 				int a = list[i + blockSize];

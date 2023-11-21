@@ -1,8 +1,9 @@
 #pragma once
+#include <time.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <time.h>
 #include <stdint.h>
 
 int gcd(int a, int b) {
@@ -86,14 +87,15 @@ void LSDradixSort(unsigned int list[], int length) {
 
 void doubleLSDradix(double list[], int length) {
 	int count[16] = {0};
-	typedef union cmp {
+	union cmp {
 		double d;
 		uint64_t i;
-	} cmp;
+	};
 
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j < 4; j++) {
-			cmp a.d = list[i];
+			union cmp a;
+			a.d = list[i];
 			if ((a.i & 3 << 62) == j << 62) count[j]++;
 		}
 	}
