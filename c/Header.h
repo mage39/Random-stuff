@@ -139,6 +139,22 @@ void LSDradixSortUnderstandable(unsigned int list[], int length) {
 	}
 }
 
+#define LEN 39
+typedef unsigned __int128 uint128_t;
+void print_uint128 (uint128_t num) {
+	char str[LEN] = {0};
+	for (int i = 0; i < LEN; i++) {
+		str[i] = "0123456789"[num % 10];
+		num /= 10;
+	}
+	for (int i = LEN - 1; i >= 0; i--) {
+		printf("%c", str[i]);
+		if (!i) break;
+		printf((i % 3) "" : ",");
+	}
+	printf("\n");
+}
+
 /*typedef enum typeChecker {
 	isChar,
 	isInt,
