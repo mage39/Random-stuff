@@ -29,7 +29,7 @@ void base64Encode (char* restrict dest, size_t destLen, char* restrict src, size
 					return;
 				}
 			}
-			uint32_t offset = MASK << (32 - 6 * k) & temp;
+			uint32_t offset = (MASK << 32 - 6 * k & temp) >> 32 - 6 * k;
 			dest[j] = table[offset];
 		}
 	}
