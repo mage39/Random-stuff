@@ -47,7 +47,7 @@ void randList(unsigned list[], int length, int modNum) {
 	srand(time(NULL));
 
 	for (int i = 0; i < length; i++) {
-		if (modNum > 0) list[i] = rand() % modNum;
+		if (modNum) list[i] = rand() % modNum;
 		else list[i] = rand();
 	}
 }
