@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <string.h>
 #define MASK 0x3F
-char* base64Encode (char* restrict dest, size_t destLen, char* restrict src, size_t srcLen) {
+void base64Encode (char* restrict dest, size_t destLen, char* restrict src, size_t srcLen) {
 	const char table[] = {
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		"abcdefghijklmnopqrstuvwxyz"
