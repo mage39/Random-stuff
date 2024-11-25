@@ -150,7 +150,7 @@ void print_uint128 (uint128_t num) {
 	for (int i = LEN - 1; i >= 0; i--) {
 		printf("%c", str[i]);
 		if (!i) break;
-		printf((i % 3) "" : ",");
+		printf((i % 3) ? "" : ",");
 	}
 	printf("\n");
 }
@@ -191,3 +191,21 @@ int aTotallyPolymorphicFunction(typeChecker a, ...) {
 		return -1;
 	}
 }*/
+
+typedef enum {
+	UCHAR,
+	FLOAT, DOUBLE, LDOUBLE,
+	UNSIGNED, UL, ULALT, ULL,
+	CHAR,
+	FLOATALT, DOUBLEALT, LDOUBLEALT,
+	INT, LINT, LINTALT, LLINT
+} WidePtrType;
+
+typedef struct {
+	WidePtrType type;
+	unsigned len;
+	void* ptr;
+} WidePtr;
+
+// or something, i havent got the whole thing straight in my head
+// but this is mostly compliant with how i want to make it
