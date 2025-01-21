@@ -25,7 +25,8 @@ void printList (uint* list, size_t length) {
 }
 
 static void checkAndSwap (uint* a, uint* b, uint i, uint j) {
-	if ((*b & radixMask << i * radixMaskWidth) == j << i * radixMaskWidth) {
+	uint match = *b & radixMask << i * radixMaskWidth;
+	if (match == j << i * radixMaskWidth) {
 		uint s = *a;
 		*a = *b;
 		*b = s;
