@@ -43,7 +43,7 @@ static void fillBucket (uint* list, uint length, uint start, uint end, uint i, u
 }
 
 void rsort (uint* list, size_t length) {
-	forin(i, 0, sizeof(uint) * (CHAR_BIT / radixMaskWidth)) {
+	forin(i, 0, sizeof(uint) * (CHAR_BIT / radixMaskWidth) + 1) {
 		uint buckets[radix] = {0};
 		forin(j, 0, length) {
 			uint match = list[j] & radixMask << i * radixMaskWidth;
