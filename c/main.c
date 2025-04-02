@@ -4,12 +4,12 @@
 
 int main (void) {
 	uint list[LEN];
-	randList(list, LEN);
-	printList(list, LEN);
+	randList(LEN, list);
+	printList(LEN, list);
 	puts("\n");
-	rsort(list, LEN);
+	rsort(LEN, list);
 	puts("");
-	printList(list, LEN);
+	printList(LEN, list);
 	puts("");
 	return 0;
 }

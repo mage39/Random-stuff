@@ -1,4 +1,4 @@
 typedef unsigned uint;
-extern void randList (uint* list, size_t length);
-extern void printList (uint* list, size_t length);
-extern void rsort (uint* list, size_t length);
+extern void randList (size_t length, uint list[length]);
+extern void printList (size_t length, uint list[length]);
+extern void rsort (size_t length, uint list[length]);
