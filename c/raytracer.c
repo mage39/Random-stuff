@@ -90,12 +90,12 @@ int main (void) {
 	puts("P3");
 	printf("%d %d\n", width, height);
 	puts("255");
-	for (int j = 0; j < width; j++) {
-		for (int i = 0; i < height; i++) {
+	for (int j = 0; j < height; j++) {
+		for (int i = 0; i < width; i++) {
+			// expr spec: pix00Loc + i * pixDeltaU + j * pixDeltaV
 			Vec3 pixelCenter = v3add(v3add(pix00Loc, v3sclr(pixDeltaU, i)),
-							   v3sclr(pixDeltaV, j));
-			Vec3 rayDir = v3sub(pixelCenter, camCenter);
-			Ray r = {camCenter, rayDir};
+					v3sclr(pixDeltaV, j));
+			Ray r = {camCenter, v3sub(pixelCenter, camCenter)};
 			Vec3 color = rayColor(r);
 			LogStr buf;
 			puts(v3toColorStr(color, buf));
