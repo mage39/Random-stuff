@@ -62,10 +62,13 @@ static Vec3 rayColor (Ray r) {
 }
 
 int main (void) {
-	double ratio = 16.0 / 9.0, focalLength = 1;
-	int width = 400, height = width / ratio;
+	double ratio = 16.0 / 9.0;
+	double focalLength = 1;
+	int width = 400;
+	int height = width / ratio;
+	double viewHeight = 2;
+	double viewWidth = viewHeight * ((double)width / height);
 	height = height > 1 ? height : 1;
-	double viewHeight = 2, viewWidth = viewHeight * ((double)width / height);
 	Vec3 camCenter = {0};
 	Vec3 viewPortU = {{viewWidth}};
 	Vec3 viewPortV = {{[1] = -viewHeight}};
