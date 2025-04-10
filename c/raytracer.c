@@ -43,14 +43,16 @@ static Vec3 v3crs (Vec3 v1, Vec3 v2) {
 		v1.v[2] * v2.v[0] - v1.v[0] * v2.v[2],
 		v1.v[0] * v2.v[1] - v1.v[1] * v2.v[0]}};
 }
-static void v3logStr (Vec3 vec, LogStr str) {
+static char* v3logStr (Vec3 vec, LogStr str) {
 	sprintf(str, "%g %g %g", vec.v[0], vec.v[1], vec.v[2]);
+	return str;
 }
-static void v3toColorStr (Vec3 vec, LogStr str) {
+static char* v3toColorStr (Vec3 vec, LogStr str) {
 	sprintf(str, "%d %d %d",
 		(int)(vec.v[0] * 255.999),
 		(int)(vec.v[1] * 255.999),
 		(int)(vec.v[2] * 255.999));
+	return str;
 }
 static Vec3 rayAt (Ray a, double t) {
 	return v3add(a.pt, v3sclr(a.dir, t));
@@ -96,8 +98,7 @@ int main (void) {
 			Ray r = {camCenter, rayDir};
 			Vec3 color = rayColor(r);
 			LogStr buf;
-			v3toColorStr(color, buf);
-			puts(buf);
+			puts(v3toColorStr(color, buf));
 		}
 	}
 }
