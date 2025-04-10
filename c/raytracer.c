@@ -13,7 +13,8 @@ static Vec3 v3add (Vec3 v1, Vec3 v2) {
 	return v1;
 }
 static Vec3 v3sub (Vec3 v1, Vec3 v2) {
-	return v3add(v1, v3neg(v2));
+	for (int i = 0; i < 3; i++) v1.v[i] -= v2.v[i];
+	return v1;
 }
 static Vec3 v3mul (Vec3 v1, Vec3 v2) {
 	for (int i = 0; i < 3; i++) v1.v[i] *= v2.v[i];
@@ -75,10 +76,12 @@ int main (void) {
 	Vec3 pixDeltaU = v3sclr(viewPortU, 1.0 / width);
 	Vec3 pixDeltaV = v3sclr(viewPortV, 1.0 / height);
 	// expr spec: camCenter - (Vec3){{[2] = focalLength}} - viewPortU / 2 - viewPortV / 2
-	Vec3 viewUpperLeft = v3add(camCenter,
-			v3neg(v3add((Vec3){{[2] = focalLength}},
-			v3neg(v3add(v3sclr(viewPortU, 0.5),
-			v3neg(v3sclr(viewPortV, 0.5)))))));
+	Vec3 viewUpperLeft;
+	{
+		Vec3 t = v3sub(camCenter, (Vec3){{[2] = focalLength}});
+		t = v3sub(t, v3sclr(viewPortU, 0.5));
+		viewUpperLeft = v3sub(t, v3sclr(viewPortV, 0.5));
+	}
 	// expr spec: viewUpperLeft + 0.5 * (pixDeltaU + pixDeltaV)
 	Vec3 pix00Loc = v3add(viewUpperLeft,
 			v3sclr(v3add(pixDeltaU, pixDeltaV), 0.5));
