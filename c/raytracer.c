@@ -33,7 +33,7 @@ static Vec3 v3sqr (Vec3 v1) {
 	return v1;
 }
 static double v3dot (Vec3 v1, Vec3 v2) {
-	double ret;
+	double ret = 0;
 	for (int i = 0; i < 3; i++) ret += v1.v[0] * v2.v[0];
 	return ret;
 }
@@ -57,7 +57,16 @@ static char* v3toColorStr (Vec3 vec, LogStr str) {
 static Vec3 rayAt (Ray a, double t) {
 	return v3add(a.pt, v3sclr(a.dir, t));
 }
+static bool hitSphere (Vec3 center, double radius, Ray r) {
+	Vec3 oc = v3sub(center, r.pt);
+	double a = v3dot(r.dir, r.dir);
+	double b = -2 * v3dot(r.dir, oc);
+	double c = v3dot(oc, oc) - radius * radius;
+	double discriminant = b * b - 4 * a * c;
+	return (discriminant >= 0);
+}
 static Vec3 rayColor (Ray r) {
+	if (hitSphere((Vec3){{[2] = -1}}, 0.5, r)) return (Vec3){{1}};
 	double a = 0.5 * (r.dir.v[1] + 1);
 	// expr spec: (1 - a) * (Vec3){{1, 1, 1}} + a * (Vec3){{0.5, 0.7, 1}}
 	return v3add(v3sclr((Vec3){{1, 1, 1}}, (1 - a)),
@@ -67,7 +76,7 @@ static Vec3 rayColor (Ray r) {
 int main (void) {
 	double ratio = 16.0 / 9.0;
 	double focalLength = 1;
-	int width = 400;
+	int width = 800;
 	int height = width / ratio;
 	double viewHeight = 2;
 	double viewWidth = viewHeight * ((double)width / height);
