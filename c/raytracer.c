@@ -86,24 +86,23 @@ int main (void) {
 	Vec3 viewPortV = {{[1] = -viewHeight}};
 	Vec3 pixDeltaU = v3sclr(viewPortU, 1.0 / width);
 	Vec3 pixDeltaV = v3sclr(viewPortV, 1.0 / height);
-	// expr spec: camCenter - (Vec3){{[2] = focalLength}} - viewPortU / 2 - viewPortV / 2
 	Vec3 viewUpperLeft;
-	{
+	{ // expr spec: camCenter - (Vec3){{[2] = focalLength}} - viewPortU / 2 - viewPortV / 2
 		Vec3 t = v3sub(camCenter, (Vec3){{[2] = focalLength}});
 		t = v3sub(t, v3sclr(viewPortU, 0.5));
 		viewUpperLeft = v3sub(t, v3sclr(viewPortV, 0.5));
 	}
 	// expr spec: viewUpperLeft + 0.5 * (pixDeltaU + pixDeltaV)
-	Vec3 pix00Loc = v3add(viewUpperLeft,
-			v3sclr(v3add(pixDeltaU, pixDeltaV), 0.5));
+	Vec3 pix00Loc = v3sclr(v3add(pixDeltaU, pixDeltaV), 0.5);
+	pix00Loc = v3add(pix00Loc, viewUpperLeft);
 	puts("P3");
 	printf("%d %d\n", width, height);
 	puts("255");
 	for (int j = 0; j < height; j++) {
 		for (int i = 0; i < width; i++) {
 			// expr spec: pix00Loc + i * pixDeltaU + j * pixDeltaV
-			Vec3 pixelCenter = v3add(v3add(pix00Loc, v3sclr(pixDeltaU, i)),
-					v3sclr(pixDeltaV, j));
+			Vec3 pixelCenter = v3add(pix00Loc, v3sclr(pixDeltaU, i));
+			pixelCenter = v3add(pixelCenter, v3sclr(pixDeltaV, j));
 			Ray r = {camCenter, v3sub(pixelCenter, camCenter)};
 			Vec3 color = rayColor(r);
 			LogStr buf;
