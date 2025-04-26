@@ -5,7 +5,7 @@
 
 int main (int argc, char** argv) {
 	if (argc != 2) {
-	   fputs("usage: takes from stdin and checks that each line has all"
+	   fputs("usage: takes from stdin and checks that each line has all "
 			   "characters in first argument\n", stderr);
 	   return 1;
 	}
