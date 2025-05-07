@@ -1,51 +1,75 @@
 #include <raylib.h>
-// this is so overengineered, trash it
+
 static constexpr int width = 1280;
 static constexpr int height = 800;
-typedef struct {
-	int x, y;
-} Vec2i;
-typedef struct {
-	double x, y;
-} Vec2d;
+static constexpr Vector2 center = {width / 2, height / 2};
+static float deltaTime = 0;
 
-static Vec2i coordLerp (Vec2d a) {
-	a = (Vec2d){a.x * 0.5 + 0.5, a.y * 0.5 + 0.5};
-	return (Vec2i){a.x * width, a.y * height};
+typedef struct {
+	Vector2 center, speed;
+	int radius;
+} Ball;
+typedef struct {
+	Rectangle paddle;
+	int speed;
+} Paddle;
+
+static void updateB (Ball* ball) {
+	ball->center.x += ball->speed.x * deltaTime;
+	ball->center.y += ball->speed.y * deltaTime;
+	if (ball->center.y + ball->radius >= height) ball->speed.y *= -1;
+	if (ball->center.y - ball->radius <= 0) ball->speed.y *= -1;
+	if (ball->center.x + ball->radius >= width) ball->speed.x *= -1;
+	if (ball->center.x - ball->radius <= 0) ball->speed.x *= -1;
 }
-static Rectangle makeRect (Vec2d pos, Vec2d rect) {
-	Vec2i posi = coordLerp(pos);
-	Vec2i recti = coordLerp(rect);
-	return (Rectangle){posi.x, posi.y, recti.x, recti.y};
+static void collideEdgeP (Paddle* paddle) {
+	if (paddle->paddle.y <= 5) paddle->paddle.y = 5;
+	if (paddle->paddle.y + paddle->paddle.height + 5 >= height) {
+		paddle->paddle.y = height - paddle->paddle.height - 5;
+	}
 }
-static Rectangle makeCenterRect(Vec2d pos, Vec2d rect) {
-	// if (pos.x > 0) 
-	rect.x = pos.x + rect.x * 0.5;
-	// else rect.x = pos.x + rect.x * 0.5;
-	// if (pos.y > 0)
-	rect.y = pos.y + rect.y * 0.5;
-	// else rect.y = pos.y + rect.y * 0.5;
-	return makeRect(pos, rect);
+static void updateP (Paddle* paddle) {
+	if (IsKeyDown(KEY_UP)) paddle->paddle.y -= paddle->speed * deltaTime;
+	if (IsKeyDown(KEY_DOWN)) paddle->paddle.y += paddle->speed * deltaTime;
+	collideEdgeP(paddle);
 }
-static void drawLine (Vec2d start, Vec2d end, Color color) {
-	Vec2i line[2] = {coordLerp(start), coordLerp(end)};
-	DrawLine(line[0].x, line[0].y, line[1].x, line[1].y, color);
+static void updateAI (Paddle* paddle, int ballY) {
+	if (paddle->paddle.y + paddle->paddle.height / 2 > ballY) {
+		paddle->paddle.y -= paddle->speed * deltaTime;
+	} else if (paddle->paddle.y + paddle->paddle.height / 2 < ballY) {
+		paddle->paddle.y += paddle->speed * deltaTime;
+	}
+	collideEdgeP(paddle);
+}
+static bool ballPaddleCollide(Ball ball, Paddle paddle) {
+	return CheckCollisionCircleRec(ball.center, ball.radius, paddle.paddle);
 }
 
 int main (void) {
 	InitWindow(width, height, "pong");
+	constexpr Vector2 paddle = {20, 120};
+	Ball ball = {center, {60 * 7, 60 * 7}, 20};
+	Paddle paddleAI = {{10, center.y - 60, paddle.x, paddle.y}, 6 * 60};
+	Paddle paddlePlayer = paddleAI;
+	paddlePlayer.paddle.x = width - 30;
 	while (!WindowShouldClose()) {
+		deltaTime = GetFrameTime();
+		updateB(&ball);
+		updateP(&paddlePlayer);
+		updateAI(&paddleAI, ball.center.y);
+		if (ballPaddleCollide(ball, paddlePlayer)) {
+			ball.speed.x *= -1;
+		} else if (ballPaddleCollide(ball, paddleAI)) {
+			ball.speed.x *= -1;
+		}
 		BeginDrawing();
-		Vec2i ballPos = coordLerp((Vec2d){0});
-		drawLine((Vec2d){0, 1}, (Vec2d){0, -1}, WHITE);
-		Rectangle borders = makeRect((Vec2d){-1, -1}, (Vec2d){1, 1});
+		ClearBackground(BLACK);
+		DrawLine(center.x, 0, center.x, height, WHITE);
+		Rectangle borders = {0, 0, width, height};
 		DrawRectangleLinesEx(borders, 1, WHITE);
-
-		// this block don't work, no idea why
-		Rectangle paddleAI = makeCenterRect((Vec2d){0, .5}, (Vec2d){.002, .005});
-		DrawRectangleRec(paddleAI, RED);
-
-		DrawCircle(ballPos.x, ballPos.y, 20, WHITE);
+		DrawRectangleRec(paddleAI.paddle, RED);
+		DrawRectangleRec(paddlePlayer.paddle, GREEN);
+		DrawCircleV(ball.center, ball.radius, WHITE);
 		EndDrawing();
 	}
 	CloseWindow();
