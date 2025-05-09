@@ -1,8 +1,8 @@
 #include <raylib.h>
+#include <string.h>
+#include <stdio.h>
 
-// the A index is an 8-bit unsigned minifloat
-enum Color { R, G, B, A };
-enum PieceName {
+enum PieceIdx {
 	SQUARE,
 	LINE,
 	LRIGHT,
@@ -12,43 +12,46 @@ enum PieceName {
 };
 
 typedef struct {
-	char d[4];
-} Pixel;
-typedef struct {
-	Pixel p[5][5]; // gives a good center for rotation
+	Color p[5][5]; // gives a good center for rotation
 } Piece;
 
-static constexpr pieces[] {
-	[SQUARE] = {[3] = {
-			[3] = {[G] = 255, [A] = 0xFF00},
-			[4] = {[G] = 255, [A] = 0xFF00}
-		}, [4] = {
-			[3] = {[G] = 255, [A] = 0xFF00},
-			[4] = {[G] = 255, [A] = 0xFF00}
-		}
-	}, [LINE] = {[1] = {
-			[3] = {[R] = 255, [A] = 0xFF00}
-		}, [2] = {
-			[3] = {[R] = 255, [A] = 0xFF00}
-		}, [3] = {
-			[3] = {[R] = 255, [A] = 0xFF00}
-		}, [4] = {
-			[3] = {[R] = 255, [A] = 0xFF00}
-		}
-	}, [LRIGHT] = { // GOD HELP ME. make it blue tho
+static constexpr Piece pieces[] = {
+	[SQUARE] = {{
+		[3] = {[3] = GREEN, [4] = GREEN},
+		[4] = {[3] = GREEN, [4] = GREEN}}},
+	[LINE] = {{
+		[1] = {[3] = RED},
+		[2] = {[3] = RED},
+		[3] = {[3] = RED},
+		[4] = {[3] = RED}}},
+	[LRIGHT] = {{
+		[2] = {[2] = BLUE, [3] = BLUE},
+		[3] = {[3] = BLUE},
+		[4] = {[3] = BLUE}}},
+	[LLEFT] = {{
+		[2] = {[3] = PURPLE, [4] = PURPLE},
+		[3] = {[3] = PURPLE},
+		[3] = {[3] = PURPLE}}},
+	[SRIGHT] = {{
+		[3] = {[3] = YELLOW, [4] = YELLOW},
+		[4] = {[2] = YELLOW, [3] = YELLOW}}},
+	[SLEFT] = {{
+		[3] = {[2] = PINK, [3] = PINK},
+		[4] = {[3] = PINK, [4] = PINK}}},
+};
 
-void checkLine(Pixel board[24][10]) {
+void checkLine(Color board[24][10]) {
 	for (int i = 0; i < 20; i++) {
 		int c = 0;
-		for (int k = 0; j < 10; j++) {
-			if (board[i][j].d[A]) c++;
+		for (int j = 0; j < 10; j++) {
+			if (board[i][j].a) c++;
 		}
 		if (c > 8) memcpy(/* down one line */);
 	}
 }
 
 int main (void) {
-	Pixel board[24][10] = {0};
+	Color board[24][10] = {0};
 	Piece queue[2] = {0};
 	InitWindow(0, 0, "tetris");
 	while(!WindowShouldClose()) {
