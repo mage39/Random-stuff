@@ -77,16 +77,16 @@ static void drawBoard (Color board[boardWidth][boardHeight]) {
 }
 
 int main (void) {
+	constexpr Rectangle boardOutline = {80, 20,
+		boardWidth * pixelWidth + 1,
+		boardHeight * pixelWidth + 1};
+	constexpr Line failHeight = {{80, pixelWidth * 4 - 2 + 20},
+		{boardWidth * pixelWidth + 80, pixelWidth * 4 - 2 + 20}};
+	constexpr Rectangle outline = {0, 0, width, height};
 	Color board[boardWidth][boardHeight] = {0};
 	board[3][3] = MAROON;
 	// Piece queue[2] = {0};
 	InitWindow(width, height, "tetris");
-	Rectangle boardOutline = {80, 20,
-		boardWidth * pixelWidth + 1,
-		boardHeight * pixelWidth + 1};
-	Line failHeight = {{80, pixelWidth * 4 - 2 + 20},
-		{boardWidth * pixelWidth + 80, pixelWidth * 4 - 2 + 20}};
-	Rectangle outline = {0, 0, width, height};
 	while(!WindowShouldClose()) {
 		// checkLine(board);
 		BeginDrawing();
