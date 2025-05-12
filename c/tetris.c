@@ -9,7 +9,8 @@ enum PieceIdx {
 	LRIGHT,
 	LLEFT,
 	SRIGHT,
-	SLEFT
+	SLEFT,
+	TPIECE
 };
 
 typedef struct {
@@ -26,7 +27,7 @@ static constexpr int boardWidth = 10;
 static constexpr int boardHeight = 24;
 // -Wpedantic gives "these are not constants" for the colors
 #pragma GCC diagnostic ignored "-Wpedantic"
-static constexpr Piece pieces[] = { // they're all SIDEWAYS
+static constexpr Piece pieces[] = { // they're all SIDEWAYS. also, forgot the T piece
 	[SQUARE] = {{
 		[3] = {[3] = GREEN, [4] = GREEN},
 		[4] = {[3] = GREEN, [4] = GREEN}}},
@@ -44,16 +45,19 @@ static constexpr Piece pieces[] = { // they're all SIDEWAYS
 		[3] = {[3] = PURPLE},
 		[4] = {[3] = PURPLE}}},
 	[SRIGHT] = {{
-		[3] = {[3] = YELLOW, [4] = YELLOW},
-		[4] = {[2] = YELLOW, [3] = YELLOW}}},
+		[3] = {[3] = ORANGE, [4] = ORANGE},
+		[4] = {[2] = ORANGE, [3] = ORANGE}}},
 	[SLEFT] = {{
 		[3] = {[2] = PINK, [3] = PINK},
-		[4] = {[3] = PINK, [4] = PINK}}}
+		[4] = {[3] = PINK, [4] = PINK}}},
+	[TPIECE] = {{
+		[3] = {[2] = BEIGE, [3] = BEIGE, [4] = BEIGE},
+		[4] = {[3] = BEIGE}}}
 };
 #pragma GCC diagnostic pop
 
 #if 0
-static void checkLine(Color board[24][10]) {
+static void checkLine(Color board[boardWidth][boardHeight]) {
 	for (int i = 0; i < 20; i++) {
 		int c = 0;
 		for (int j = 0; j < 10; j++) {
@@ -68,15 +72,14 @@ static void drawBoard (Color board[boardWidth][boardHeight]) {
 		for (int j = 0; j < boardHeight; j++) {
 			Rectangle pixel = {80 + i * pixelWidth, 20 + j * pixelWidth,
 				pixelWidth + 1, pixelWidth + 1};
-			DrawRectangleLinesEx(pixel, 1, WHITE);
 			Rectangle pixColor = {pixel.x + 1, pixel.y + 1,
 				pixelWidth - 1, pixelWidth - 1};
 			DrawRectangleRec(pixColor, board[i][j]);
+			DrawRectangleLinesEx(pixel, 1, WHITE);
 		}
 	}
 }
 static void drawPiece (Image* image, Vector3 center, enum PieceIdx idx) {
-	// Vector2 boardOrigin = {80, 20};
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 5; j++) {
 			Rectangle pixel = {i * pixelWidth, j * pixelWidth,
@@ -84,21 +87,38 @@ static void drawPiece (Image* image, Vector3 center, enum PieceIdx idx) {
 			Rectangle pixColor = {pixel.x + 1, pixel.y + 1,
 				pixelWidth - 1, pixelWidth - 1};
 			if (pieces[idx].p[i][j].a) {
-				ImageDrawRectangleLines(image, pixel, 1, WHITE);
 				ImageDrawRectangleRec(image, pixColor, pieces[idx].p[i][j]);
+				ImageDrawRectangleLines(image, pixel, 1, WHITE);
 			}
 		}
 	}
 	Texture2D tex = LoadTextureFromImage(*image);
-	DrawTextureEx(tex, (Vector2){center.x, center.y}, center.z, 1, WHITE);
+	DrawTextureEx(tex, (Vector2){center.x, center.y}, center.z, 1, LIGHTGRAY);
 }
-static Vector3 updateCenter (Vector3 center, float speed, bool collided) {
-	// static Vector2 trueCenter = {80 + boardWidth / 2 * pixelWidth, 40};
-	// if (collided) trueCenter = {80 + boardWidth / 2 * pixelWidth, 40};
-	return (Vector3){280, 20, 90}; // note: imageWidth is 200
+static Vector3 rectifyCenter (Vector3 center) {
+	return (Vector3){500, 80, 0}; // note: imageWidth is 201
 }
-static bool collision (Vector3 center, enum PieceIdx which) {
+static bool collision (const Color board[boardWidth][boardHeight],
+		Vector3 center, enum PieceIdx which) {
 	return false;
+}
+static void writeBoard (Color board[boardWidth][boardHeight],
+		Vector3 center, enum PieceIdx which) {
+}
+static Vector3 update (Vector3 center, float speed) {
+	if (IsKeyPressed(KEY_A)) center.z -= 90;
+	if (IsKeyPressed(KEY_D)) center.z += 90;
+	if (IsKeyDown(KEY_DOWN)) speed *= 3;
+	if (IsKeyPressed(KEY_UP)) speed = 69420;
+	center.y += speed * GetFrameTime();
+	if (IsKeyPressed(KEY_LEFT)) center.x -= pixelWidth;
+	if (IsKeyPressed(KEY_RIGHT)) center.x += pixelWidth;
+	if (center.z > 300) center.z = 0;
+	if (center.z < 0) center.z = 270;
+	if (center.x < 80) center.x = 100;
+	constexpr int leftBound = 80 * boardWidth * pixelWidth;
+	if (center.x > leftBound) center.x = leftBound - 20;
+	return center;
 }
 
 int main (void) {
@@ -108,23 +128,32 @@ int main (void) {
 	constexpr Line failHeight = {{80, pixelWidth * 4 - 2 + 20},
 		{boardWidth * pixelWidth + 80, pixelWidth * 4 - 2 + 20}};
 	constexpr Rectangle outline = {0, 0, width, height};
-	constexpr int imageWidth = pixelWidth * 5;
+	constexpr int imageWidth = pixelWidth * 5 + 1;
+	float speed = 0; // i'm thinking initially 40 to 80 -- 0 is for testing
 	Color board[boardWidth][boardHeight] = {0};
-	Image pieceImage = GenImageColor(imageWidth + 1, imageWidth + 1, BLANK);
-	// Piece queue[2] = {0}; // note: this should be PieceIdx
+	Image pieceImage = GenImageColor(imageWidth, imageWidth, BLANK);
+	// enum PieceIdx queue[2] = {0};
 	Vector3 center = {0};
-	bool collided = false;
 	InitWindow(width, height, "tetris");
 	while(!WindowShouldClose()) {
-		collided = collision(center, 0);
-		center = updateCenter(center, 0, collided);
+		center = update(center, speed);
+		// if i allowed my functions to hold state,
+		// the function signature that could replace this if statement
+		// could be less than 4 things, and fit inside the 80 column limit.
+		// but i don't, so that's that.
+		if (collision(board, center, 0)) {
+			writeBoard(board, center, 0);
+			speed += 0.01;
+			center = (Vector3){40, 60 + boardWidth * pixelWidth, 0};
+			// also handle queue things here
+		}
 		// checkLine(board);
 		BeginDrawing();
 		ClearBackground(BLACK);
 		DrawLineEx(failHeight.start, failHeight.end, 4, RED);
 		DrawRectangleLinesEx(boardOutline, 1, WHITE);
 		DrawRectangleLinesEx(outline, 1, WHITE);
-		drawPiece(&pieceImage, center, LINE);
+		drawPiece(&pieceImage, rectifyCenter(center), LINE);
 		drawBoard(board);
 		EndDrawing();
 	}
