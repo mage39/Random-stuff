@@ -1,5 +1,6 @@
 #include <raylib.h>
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 enum PieceIdx {
@@ -20,13 +21,12 @@ typedef struct {
 
 static constexpr int width = 800;
 static constexpr int height = 1000;
-constexpr int pixelWidth = 40;
-constexpr int boardWidth = 10;
-constexpr int boardHeight = 24;
+static constexpr int pixelWidth = 40;
+static constexpr int boardWidth = 10;
+static constexpr int boardHeight = 24;
 // -Wpedantic gives "these are not constants" for the colors
 #pragma GCC diagnostic ignored "-Wpedantic"
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static constexpr Piece pieces[] = {
+static constexpr Piece pieces[] = { // they're all SIDEWAYS
 	[SQUARE] = {{
 		[3] = {[3] = GREEN, [4] = GREEN},
 		[4] = {[3] = GREEN, [4] = GREEN}}},
@@ -75,6 +75,31 @@ static void drawBoard (Color board[boardWidth][boardHeight]) {
 		}
 	}
 }
+static void drawPiece (Image* image, Vector3 center, enum PieceIdx idx) {
+	// Vector2 boardOrigin = {80, 20};
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 5; j++) {
+			Rectangle pixel = {i * pixelWidth, j * pixelWidth,
+				pixelWidth + 1, pixelWidth + 1};
+			Rectangle pixColor = {pixel.x + 1, pixel.y + 1,
+				pixelWidth - 1, pixelWidth - 1};
+			if (pieces[idx].p[i][j].a) {
+				ImageDrawRectangleLines(image, pixel, 1, WHITE);
+				ImageDrawRectangleRec(image, pixColor, pieces[idx].p[i][j]);
+			}
+		}
+	}
+	Texture2D tex = LoadTextureFromImage(*image);
+	DrawTextureEx(tex, (Vector2){center.x, center.y}, center.z, 1, WHITE);
+}
+static Vector3 updateCenter (Vector3 center, float speed, bool collided) {
+	// static Vector2 trueCenter = {80 + boardWidth / 2 * pixelWidth, 40};
+	// if (collided) trueCenter = {80 + boardWidth / 2 * pixelWidth, 40};
+	return (Vector3){280, 20, 90}; // note: imageWidth is 200
+}
+static bool collision (Vector3 center, enum PieceIdx which) {
+	return false;
+}
 
 int main (void) {
 	constexpr Rectangle boardOutline = {80, 20,
@@ -83,19 +108,26 @@ int main (void) {
 	constexpr Line failHeight = {{80, pixelWidth * 4 - 2 + 20},
 		{boardWidth * pixelWidth + 80, pixelWidth * 4 - 2 + 20}};
 	constexpr Rectangle outline = {0, 0, width, height};
+	constexpr int imageWidth = pixelWidth * 5;
 	Color board[boardWidth][boardHeight] = {0};
-	board[3][3] = MAROON;
-	// Piece queue[2] = {0};
+	Image pieceImage = GenImageColor(imageWidth + 1, imageWidth + 1, BLANK);
+	// Piece queue[2] = {0}; // note: this should be PieceIdx
+	Vector3 center = {0};
+	bool collided = false;
 	InitWindow(width, height, "tetris");
 	while(!WindowShouldClose()) {
+		collided = collision(center, 0);
+		center = updateCenter(center, 0, collided);
 		// checkLine(board);
 		BeginDrawing();
 		ClearBackground(BLACK);
 		DrawLineEx(failHeight.start, failHeight.end, 4, RED);
 		DrawRectangleLinesEx(boardOutline, 1, WHITE);
 		DrawRectangleLinesEx(outline, 1, WHITE);
+		drawPiece(&pieceImage, center, LINE);
 		drawBoard(board);
 		EndDrawing();
 	}
 	CloseWindow();
+	UnloadImage(pieceImage);
 }
