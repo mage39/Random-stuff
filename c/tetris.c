@@ -161,7 +161,7 @@ static Vector2 bounds (float rotation, enum PieceIdx which) {
 			bnds.y -= pixelWidth;
 			return bnds;
 		}
-	} // OH BROTHER, MORE WORK
+	}
 	return bnds;
 }
 static Vector3 update (Vector3 center, float speed, enum PieceIdx which) {
@@ -188,7 +188,7 @@ int main (void) {
 		{boardWidth * pixelWidth + 80, pixelWidth * 4 - 2 + 20}};
 	constexpr Rectangle outline = {0, 0, width, height};
 	constexpr int imageWidth = pixelWidth * 5 + 1;
-	float speed = 00; // 80
+	float speed = 0; // 80
 	Color board[boardWidth][boardHeight] = {0};
 	Image pieceImage = GenImageColor(imageWidth, imageWidth, BLANK);
 	// enum PieceIdx queue[2] = {0};
@@ -196,10 +196,6 @@ int main (void) {
 	InitWindow(width, height, "tetris");
 	while(!WindowShouldClose()) {
 		center = update(center, speed, SQUARE);
-		// if i allowed my functions to hold state,
-		// the function signature that could replace this if statement
-		// could be less than 4 things, and fit inside the 80 column limit.
-		// but i don't, so that's that.
 		if (collision(board, center, 0)) {
 			writeBoard(board, center, 0);
 			speed += 0.01;
