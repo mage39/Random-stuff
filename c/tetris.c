@@ -106,8 +106,18 @@ static Vector3 rectifyCenter (Vector3 center) {
 	if (fabsf(center.z - 0) <= E) {
 		center.x -= pixelWidth * 2 + pixelWidth / 2;
 		center.y -= pixelWidth * 2 + pixelWidth / 2;
+	} else if (fabsf(center.z - 90) <= E) {
+		center.x += pixelWidth * 2 + pixelWidth / 2;
+		center.y -= pixelWidth * 2 + pixelWidth / 2;
+	} else if (fabsf(center.z - 180) <= E) {
+		center.x += pixelWidth * 2 + pixelWidth / 2;
+		center.y += pixelWidth * 2 + pixelWidth / 2;
+	} else if (fabsf(center.z - 270) <= E) {
+		center.x -= pixelWidth * 2 + pixelWidth / 2;
+		center.y += pixelWidth * 2 + pixelWidth / 2;
 	}
-	return center; // note: imageWidth is 201
+	center.y = floorf(center.y / 40) * 40 + 20;
+	return center;
 }
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 static bool collision (const Color board[boardWidth][boardHeight],
@@ -118,19 +128,55 @@ static void writeBoard (Color board[boardWidth][boardHeight],
 		Vector3 center, enum PieceIdx which) {
 }
 #pragma GCC diagnostic pop
-static Vector3 update (Vector3 center, float speed) {
+static Vector2 bounds (float rotation, enum PieceIdx which) {
+	Vector2 bnds = {100, 60 + boardWidth * pixelWidth};
+	if (which == SQUARE) {
+		if (fabsf(rotation - 0) <= E) {
+			bnds.y -= pixelWidth;
+			return bnds;
+		}
+		if (fabsf(rotation - 270) <= E) {
+			bnds.y -= pixelWidth;
+			return bnds;
+		}
+		if (fabsf(rotation - 90) <= E) {
+			bnds.x += pixelWidth;
+			return bnds;
+		}
+		if (fabsf(rotation - 180) <= E) {
+			bnds.x += pixelWidth;
+			return bnds;
+		}
+	}
+	if (which == LINE) {
+		if (fabsf(rotation - 90) <= E) return bnds;
+		if (fabsf(rotation - 270) <= E) return bnds;
+		if (fabsf(rotation - 0) <= E) {
+			bnds.x += pixelWidth;
+			bnds.y -= pixelWidth * 2;
+			return bnds;
+		}
+		if (fabsf(rotation - 180) <= E) {
+			bnds.x += pixelWidth * 2;
+			bnds.y -= pixelWidth;
+			return bnds;
+		}
+	} // OH BROTHER, MORE WORK
+	return bnds;
+}
+static Vector3 update (Vector3 center, float speed, enum PieceIdx which) {
 	if (IsKeyPressed(KEY_A)) center.z -= 90;
 	if (IsKeyPressed(KEY_D)) center.z += 90;
 	if (IsKeyDown(KEY_DOWN)) speed *= 3;
-	if (IsKeyPressed(KEY_UP)) speed = 69420;
+	if (IsKeyDown(KEY_UP)) speed = 69420;
 	center.y += speed * GetFrameTime();
 	if (IsKeyPressed(KEY_LEFT)) center.x -= pixelWidth;
 	if (IsKeyPressed(KEY_RIGHT)) center.x += pixelWidth;
 	if (center.z > 300) center.z = 0;
 	if (center.z < 0) center.z = 270;
-	if (center.x < 80) center.x = 100;
-	constexpr int leftBound = 80 * boardWidth * pixelWidth;
-	if (center.x > leftBound) center.x = leftBound - 20;
+	Vector2 bnds = bounds(center.z, which);
+	if (center.x < bnds.x) center.x = bnds.x;
+	if (center.x > bnds.y) center.x = bnds.y;
 	return center;
 }
 
@@ -142,14 +188,14 @@ int main (void) {
 		{boardWidth * pixelWidth + 80, pixelWidth * 4 - 2 + 20}};
 	constexpr Rectangle outline = {0, 0, width, height};
 	constexpr int imageWidth = pixelWidth * 5 + 1;
-	float speed = 0; // i'm thinking initially 40 to 80 -- 0 is for testing
+	float speed = 00; // 80
 	Color board[boardWidth][boardHeight] = {0};
 	Image pieceImage = GenImageColor(imageWidth, imageWidth, BLANK);
 	// enum PieceIdx queue[2] = {0};
-	Vector3 center = {60 + boardWidth * pixelWidth / 2, 40, 0};
+	Vector3 center = {60 + boardWidth * pixelWidth / 2, 40 * 2, 0};
 	InitWindow(width, height, "tetris");
 	while(!WindowShouldClose()) {
-		center = update(center, speed);
+		center = update(center, speed, SQUARE);
 		// if i allowed my functions to hold state,
 		// the function signature that could replace this if statement
 		// could be less than 4 things, and fit inside the 80 column limit.
@@ -157,7 +203,7 @@ int main (void) {
 		if (collision(board, center, 0)) {
 			writeBoard(board, center, 0);
 			speed += 0.01;
-			center = (Vector3){60 + boardWidth * pixelWidth / 2, 40, 0};
+			center = (Vector3){60 + boardWidth * pixelWidth / 2, 40 * 2, 0};
 			// also handle queue things here
 		}
 		// checkLine(board);
@@ -166,7 +212,7 @@ int main (void) {
 		DrawLineEx(failHeight.start, failHeight.end, 4, RED);
 		DrawRectangleLinesEx(boardOutline, 1, WHITE);
 		DrawRectangleLinesEx(outline, 1, WHITE);
-		drawPiece(&pieceImage, rectifyCenter(center), LINE);
+		drawPiece(&pieceImage, rectifyCenter(center), SQUARE);
 		drawBoard(board);
 		EndDrawing();
 	}
