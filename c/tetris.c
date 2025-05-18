@@ -125,6 +125,10 @@ static Vector3 rectifyCenter (Vector3 center) {
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 static void writeBoard (Vector3 center, enum PieceIdx which) {
 }
+// next 3 lines should be scoped to following function
+	constexpr Rectangle leftBnd = {0, 0, 80, height};
+	constexpr Rectangle rightBnd = {480, 0, 80, height};
+	constexpr Rectangle lowBnd = {40, 980, 480, 20};
 static Vector3 collision (Vector3 center, enum PieceIdx which) {
 	// draw collision boxes and check collision i think
 	return (Vector3){-1, -1, -1};
@@ -177,6 +181,13 @@ int main (void) {
 		DrawRectangleLinesEx(boardOutline, 1, WHITE);
 		DrawRectangleLinesEx(outline, 1, WHITE);
 		drawTex(tex, rectifyCenter(center));
+		// testing code
+		Color testRec = LIME;
+		testRec.a = 100;
+		DrawRectangleRec(leftBnd, testRec);
+		DrawRectangleRec(rightBnd, testRec);
+		DrawRectangleRec(lowBnd, testRec);
+		// end testing code
 		drawBoard();
 		EndDrawing();
 	}
