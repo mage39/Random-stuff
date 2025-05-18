@@ -57,9 +57,10 @@ static constexpr Piece pieces[] = { // they're all SIDEWAYS
 		[3] = {[2] = BEIGE}}}
 };
 #pragma GCC diagnostic pop
+static Color board[boardWidth][boardHeight] = {0};
 
 #if 0
-static void checkLine(Color board[boardWidth][boardHeight]) {
+static void checkLine(void) {
 	for (int i = 0; i < 20; i++) {
 		int c = 0;
 		for (int j = 0; j < 10; j++) {
@@ -69,7 +70,7 @@ static void checkLine(Color board[boardWidth][boardHeight]) {
 	}
 }
 #endif
-static void drawBoard (Color board[boardWidth][boardHeight]) {
+static void drawBoard (void) {
 	for (int i = 0; i < boardWidth; i++) {
 		for (int j = 0; j < boardHeight; j++) {
 			Rectangle pixel = {80 + i * pixelWidth, 20 + j * pixelWidth,
@@ -81,7 +82,10 @@ static void drawBoard (Color board[boardWidth][boardHeight]) {
 		}
 	}
 }
-static void drawPiece (Image* image, Vector3 center, enum PieceIdx idx) {
+static void drawTex(Texture2D tex, Vector3 center) {
+	DrawTextureEx(tex, (Vector2){center.x, center.y}, center.z, 1, LIGHTGRAY);
+}
+static Texture2D drawPiece (Image* image, enum PieceIdx idx) {
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 5; j++) {
 			Rectangle pixel = {i * pixelWidth, j * pixelWidth,
@@ -99,8 +103,7 @@ static void drawPiece (Image* image, Vector3 center, enum PieceIdx idx) {
 			}
 		}
 	}
-	Texture2D tex = LoadTextureFromImage(*image);
-	DrawTextureEx(tex, (Vector2){center.x, center.y}, center.z, 1, LIGHTGRAY);
+	return LoadTextureFromImage(*image);
 }
 static Vector3 rectifyCenter (Vector3 center) {
 	if (fabsf(center.z - 0) <= E) {
@@ -120,50 +123,13 @@ static Vector3 rectifyCenter (Vector3 center) {
 	return center;
 }
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-static bool collision (const Color board[boardWidth][boardHeight],
-		Vector3 center, enum PieceIdx which) {
-	return false;
+static void writeBoard (Vector3 center, enum PieceIdx which) {
 }
-static void writeBoard (Color board[boardWidth][boardHeight],
-		Vector3 center, enum PieceIdx which) {
+static Vector3 collision (Vector3 center, enum PieceIdx which) {
+	// draw collision boxes and check collision i think
+	return (Vector3){-1, -1, -1};
 }
 #pragma GCC diagnostic pop
-static Vector2 bounds (float rotation, enum PieceIdx which) {
-	Vector2 bnds = {100, 60 + boardWidth * pixelWidth};
-	if (which == SQUARE) {
-		if (fabsf(rotation - 0) <= E) {
-			bnds.y -= pixelWidth;
-			return bnds;
-		}
-		if (fabsf(rotation - 270) <= E) {
-			bnds.y -= pixelWidth;
-			return bnds;
-		}
-		if (fabsf(rotation - 90) <= E) {
-			bnds.x += pixelWidth;
-			return bnds;
-		}
-		if (fabsf(rotation - 180) <= E) {
-			bnds.x += pixelWidth;
-			return bnds;
-		}
-	}
-	if (which == LINE) {
-		if (fabsf(rotation - 90) <= E) return bnds;
-		if (fabsf(rotation - 270) <= E) return bnds;
-		if (fabsf(rotation - 0) <= E) {
-			bnds.x += pixelWidth;
-			bnds.y -= pixelWidth * 2;
-			return bnds;
-		}
-		if (fabsf(rotation - 180) <= E) {
-			bnds.x += pixelWidth * 2;
-			bnds.y -= pixelWidth;
-			return bnds;
-		}
-	}
-	return bnds;
-}
 static Vector3 update (Vector3 center, float speed, enum PieceIdx which) {
 	if (IsKeyPressed(KEY_A)) center.z -= 90;
 	if (IsKeyPressed(KEY_D)) center.z += 90;
@@ -174,9 +140,9 @@ static Vector3 update (Vector3 center, float speed, enum PieceIdx which) {
 	if (IsKeyPressed(KEY_RIGHT)) center.x += pixelWidth;
 	if (center.z > 300) center.z = 0;
 	if (center.z < 0) center.z = 270;
-	Vector2 bnds = bounds(center.z, which);
-	if (center.x < bnds.x) center.x = bnds.x;
-	if (center.x > bnds.y) center.x = bnds.y;
+	Vector3 collides = collision(center, which);
+	if (collides.x > 0) center.x -= pixelWidth;
+	if (collides.y > 0) center.x -= pixelWidth;
 	return center;
 }
 
@@ -189,27 +155,29 @@ int main (void) {
 	constexpr Rectangle outline = {0, 0, width, height};
 	constexpr int imageWidth = pixelWidth * 5 + 1;
 	float speed = 0; // 80
-	Color board[boardWidth][boardHeight] = {0};
 	Image pieceImage = GenImageColor(imageWidth, imageWidth, BLANK);
+	if (pieceImage.data == NULL) exit(1);
 	// enum PieceIdx queue[2] = {0};
 	Vector3 center = {60 + boardWidth * pixelWidth / 2, 40 * 2, 0};
 	InitWindow(width, height, "tetris");
+	Texture2D tex = drawPiece(&pieceImage, SQUARE);
 	while(!WindowShouldClose()) {
 		center = update(center, speed, SQUARE);
-		if (collision(board, center, 0)) {
-			writeBoard(board, center, 0);
+		if (collision(center, 0).z > 0) {
+			writeBoard(center, 0);
 			speed += 0.01;
 			center = (Vector3){60 + boardWidth * pixelWidth / 2, 40 * 2, 0};
+			tex = drawPiece(&pieceImage, SQUARE);
 			// also handle queue things here
 		}
-		// checkLine(board);
+		// checkLine();
 		BeginDrawing();
 		ClearBackground(BLACK);
 		DrawLineEx(failHeight.start, failHeight.end, 4, RED);
 		DrawRectangleLinesEx(boardOutline, 1, WHITE);
 		DrawRectangleLinesEx(outline, 1, WHITE);
-		drawPiece(&pieceImage, rectifyCenter(center), SQUARE);
-		drawBoard(board);
+		drawTex(tex, rectifyCenter(center));
+		drawBoard();
 		EndDrawing();
 	}
 	CloseWindow();
