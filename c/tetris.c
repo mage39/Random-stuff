@@ -147,8 +147,7 @@ static Vector3 collision (Vector3 center, enum PieceIdx which) {
 		for (int j = 0; j < 4; j++) {
 			if (!ColorIsEqual(pieces[which].p[i][j], BLANK)) {
 				// DEBUG: locations incorrect:
-				// rectifyCenter seems to be rotating around
-				// the bottom left point of `tex`
+				// rectifyCenter rectfies from actual `tex` center
 				Vector3 offset = {
 					center.x + pixelWidth / 2 + i * pixelWidth,
 					center.y + pixelWidth / 2 + j * pixelWidth,
@@ -160,6 +159,10 @@ static Vector3 collision (Vector3 center, enum PieceIdx which) {
 				DrawCircle(offset.x, offset.y, 10, RED);
 				if (!ColorIsEqual(a, BLACK)) {
 					UnloadImage(scrn);
+					// TODO: actual expected behavior is:
+					// center.x is "collides right",
+					// center.y is "collides left", and
+					// enter.z is "collides downwards"
 					return offset;
 				}
 			}
@@ -218,7 +221,7 @@ int main (void) {
 			speed += 0.01;
 			center = (Vector3){60 + boardWidth * pixelWidth / 2, 40 * 2, 0};
 			tex = drawPiece(&pieceImage, SQUARE);
-			// TODO also handle queue and writeBoard things here
+			// TODO: also handle queue and writeBoard things here
 		}
 		drawTex(tex, rectifyCenter(center));
 		EndDrawing();
