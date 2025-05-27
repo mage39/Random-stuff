@@ -93,13 +93,19 @@ static Texture2D drawPiece (Image* image, enum PieceIdx idx) {
 			Rectangle pixColor = {pixel.x + 1, pixel.y + 1,
 				pixelWidth - 1, pixelWidth - 1};
 			if (pieces[idx].p[i][j].a) {
-				ImageDrawRectangleRec(image, pixColor, pieces[idx].p[i][j]);
+				// DEBUG next 3 lines
+				Color a = pieces[idx].p[i][j];
+				a.a = 150;
+				ImageDrawRectangleRec(image, pixColor, a);
 				ImageDrawRectangleLines(image, pixel, 1, WHITE);
 			}
 			if (i == 2 && j == 2) {
-				Vector2 c = {i * pixelWidth + pixelWidth / 2,
+				Vector2 center = {i * pixelWidth + pixelWidth / 2,
 					j * pixelWidth + pixelWidth / 2};
-				ImageDrawCircleV(image, c, 10, LIME);
+				// DEBUG next 3 lines
+				Color a = LIME;
+				a.a = 150;
+				ImageDrawCircleV(image, center, 10, a);
 			}
 		}
 	}
@@ -125,15 +131,43 @@ static Vector3 rectifyCenter (Vector3 center) {
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 static void writeBoard (Vector3 center, enum PieceIdx which) {
 }
-// next 3 lines should be scoped to following function
+#pragma GCC diagnostic pop
+static Vector3 collision (Vector3 center, enum PieceIdx which) {
 	constexpr Rectangle leftBnd = {0, 0, 80, height};
 	constexpr Rectangle rightBnd = {480, 0, 80, height};
 	constexpr Rectangle lowBnd = {40, 980, 480, 20};
-static Vector3 collision (Vector3 center, enum PieceIdx which) {
-	// draw collision boxes and check collision i think
+	Color testRec = LIME;
+	// DEBUG: no collision detected out of bounds
+	testRec.a = 20;
+	DrawRectangleRec(leftBnd, testRec);
+	DrawRectangleRec(rightBnd, testRec);
+	DrawRectangleRec(lowBnd, testRec);
+	Image scrn = LoadImageFromScreen();
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			if (!ColorIsEqual(pieces[which].p[i][j], BLANK)) {
+				// DEBUG: locations incorrect:
+				// rectifyCenter seems to be rotating around
+				// the bottom left point of `tex`
+				Vector3 offset = {
+					center.x + pixelWidth / 2 + i * pixelWidth,
+					center.y + pixelWidth / 2 + j * pixelWidth,
+					center.z};
+				offset = rectifyCenter(offset);
+				offset.y += 20;
+				Color a = GetImageColor(scrn, offset.x, offset.y);
+				// DEBUG
+				DrawCircle(offset.x, offset.y, 10, RED);
+				if (!ColorIsEqual(a, BLACK)) {
+					UnloadImage(scrn);
+					return offset;
+				}
+			}
+		}
+	}
+	UnloadImage(scrn);
 	return (Vector3){-1, -1, -1};
 }
-#pragma GCC diagnostic pop
 static Vector3 update (Vector3 center, float speed, enum PieceIdx which) {
 	if (IsKeyPressed(KEY_A)) center.z -= 90;
 	if (IsKeyPressed(KEY_D)) center.z += 90;
@@ -145,6 +179,9 @@ static Vector3 update (Vector3 center, float speed, enum PieceIdx which) {
 	if (center.z > 300) center.z = 0;
 	if (center.z < 0) center.z = 270;
 	Vector3 collides = collision(center, which);
+	// DEBUG: collision always detected,
+	// which shoves the piece leftward off the screen
+	// TODO: collision detected (mostly) appropriately, but response is incorrect
 	if (collides.x > 0) center.x -= pixelWidth;
 	if (collides.y > 0) center.x -= pixelWidth;
 	return center;
@@ -164,31 +201,26 @@ int main (void) {
 	// enum PieceIdx queue[2] = {0};
 	Vector3 center = {60 + boardWidth * pixelWidth / 2, 40 * 2, 0};
 	InitWindow(width, height, "tetris");
+	// DEBUG
+	// SetTargetFPS(1);
 	Texture2D tex = drawPiece(&pieceImage, SQUARE);
 	while(!WindowShouldClose()) {
-		center = update(center, speed, SQUARE);
-		if (collision(center, 0).z > 0) {
-			writeBoard(center, 0);
-			speed += 0.01;
-			center = (Vector3){60 + boardWidth * pixelWidth / 2, 40 * 2, 0};
-			tex = drawPiece(&pieceImage, SQUARE);
-			// also handle queue things here
-		}
 		// checkLine();
 		BeginDrawing();
 		ClearBackground(BLACK);
 		DrawLineEx(failHeight.start, failHeight.end, 4, RED);
 		DrawRectangleLinesEx(boardOutline, 1, WHITE);
 		DrawRectangleLinesEx(outline, 1, WHITE);
-		drawTex(tex, rectifyCenter(center));
-		// testing code
-		Color testRec = LIME;
-		testRec.a = 100;
-		DrawRectangleRec(leftBnd, testRec);
-		DrawRectangleRec(rightBnd, testRec);
-		DrawRectangleRec(lowBnd, testRec);
-		// end testing code
 		drawBoard();
+		center = update(center, speed, SQUARE);
+		if (collision(center, 0).z > 0) {
+			writeBoard(center, 0);
+			speed += 0.01;
+			center = (Vector3){60 + boardWidth * pixelWidth / 2, 40 * 2, 0};
+			tex = drawPiece(&pieceImage, SQUARE);
+			// TODO also handle queue and writeBoard things here
+		}
+		drawTex(tex, rectifyCenter(center));
 		EndDrawing();
 	}
 	CloseWindow();

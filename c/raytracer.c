@@ -1,5 +1,12 @@
 #include <cglm/cglm.h>
 
+static void pixColor (vec3 origin, vec3 dir, vec3 dst) {
+	vec3 unitDir;
+	glm_vec3_divs(dir, 3, unitDir);
+	float a = .5 * (unitDir[1] + 1);
+	vec3 from = {1, 1, 1}, to = {.5, .7, 1};
+	glm_vec3_lerp(from, to, a, dst);
+}
 
 int main (void) {
 	constexpr int width = 400;
@@ -11,8 +18,8 @@ int main (void) {
 	vec3 viewportU = {viewWidth};
 	vec3 viewportV = {[1] = -viewHeight};
 	vec3 pixDeltaU, pixDeltaV;
-	glm_vec3_divs(viewportV, width, pixDeltaV);
 	glm_vec3_divs(viewportU, width, pixDeltaU);
+	glm_vec3_divs(viewportV, height, pixDeltaV);
 	vec3 viewUpperLeft = {[2] = focalLength};
 	{ // viewUpperLeft init
 		glm_vec3_sub(center, viewUpperLeft, viewUpperLeft);
@@ -43,9 +50,8 @@ int main (void) {
 			}
 			vec3 rayDir;
 			glm_vec3_sub(pixCenter, center, rayDir);
-			// got to here
-			vec3 t = {(float)i / (width - 1), (float)j / (height - 1), 0};
-			glm_vec3_scale(t, 255.999, t);
+			vec3 t;
+			pixColor(center, rayDir, t);
 			unsigned char pixel[] = {t[0], t[1], t[2]};
 			fwrite(pixel, 1, 3, out);
 		}
