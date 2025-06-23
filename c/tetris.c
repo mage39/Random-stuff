@@ -82,8 +82,8 @@ static void drawBoard (void) {
 		}
 	}
 }
-static void drawTex(Texture2D tex, Vector3 center) {
-	DrawTextureEx(tex, (Vector2){center.x, center.y}, center.z, 1, LIGHTGRAY);
+static void drawTex(Texture2D tex, Vector3 pos) {
+	DrawTextureEx(tex, (Vector2){pos.x, pos.y}, pos.z, 1, LIGHTGRAY);
 }
 static Texture2D drawPiece (Image* image, enum PieceIdx idx) {
 	for (int i = 0; i < 5; i++) {
@@ -153,7 +153,6 @@ static Vector3 collision (Vector3 center, enum PieceIdx which) {
 					center.y + pixelWidth / 2 + j * pixelWidth,
 					center.z};
 				offset = rectifyCenter(offset);
-				offset.y += 20;
 				Color a = GetImageColor(scrn, offset.x, offset.y);
 				// DEBUG
 				DrawCircle(offset.x, offset.y, 10, RED);
